@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order History - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+body { background-color:#f4f7ff; color:#0a2a66; overflow-x:hidden; }
+
+header { background:#0a2a66; color:#fff; display:flex; justify-content:space-between; align-items:center;
+    padding:15px 8%; position:fixed; width:100%; top:0; z-index:100; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+header h1 { font-size:1.6rem; font-weight:700; letter-spacing:1px; }
+.menu-toggle { font-size:1.8rem; cursor:pointer; color:#fff; }
+
+.sidebar { position:fixed; top:0; left:-260px; width:250px; height:100vh; background:#0a2a66; color:#fff;
+    padding:30px 20px; transition:0.3s ease; z-index:200; box-shadow:2px 0 5px rgba(0,0,0,0.1); }
+.sidebar.active { left:0; }
+.sidebar h2 { text-align:center; margin-bottom:25px; }
+.sidebar ul { list-style:none; }
+.sidebar ul li { margin:20px 0; }
+.sidebar ul li a { color:#fff; text-decoration:none; font-weight:500; transition:0.3s; display:block; padding:6px 0; border-radius:5px; }
+.sidebar ul li a:hover { color:#1e90ff; background:rgba(255,255,255,0.1); }
+.purse { background:#fff; color:#0a2a66; padding:12px; border-radius:10px; text-align:center; font-weight:600; margin-top:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+
+.container { margin-top:120px; padding:40px 8%; }
+
+table {
+    width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden;
+    box-shadow:0 6px 15px rgba(0,0,0,0.05);
+}
+th, td { padding:14px; text-align:center; border-bottom:1px solid #f0f5ff; font-size:0.95rem; }
+th { background:#0a2a66; color:#fff; font-weight:600; }
+tr:last-child td { border-bottom:none; }
+tr:nth-child(even) { background:#f0f5ff; }
+tr:hover { background:rgba(30,144,255,0.1); transition:0.2s; }
+
+.delete-btn {
+    background:#ff3b3b;
+    color:#fff;
+    border:none;
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.85rem;
+    font-weight:600;
+}
+.delete-btn:hover { background:#cc0000; }
+
+footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin-top:30px; box-shadow:0 -3px 6px rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="menu-toggle" id="menuToggle">☰</div>
+  <h1>Gigantic Data Hub — Order History</h1>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <h2>Menu</h2>
+  <ul>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="order.html">Buy Data</a></li>
+    <li><a href="order_history.html">Order History</a></li>
+    <li><a href="#">Wallet Top-up</a></li>
+    <li><a href="login.html">Logout</a></li>
+    <li><a href="https://wa.me/233549055308" target="_blank">Join WhatsApp Group</a></li>
+  </ul>
+  <div class="purse" id="currentBalance">Balance: ₵0.00</div>
+</aside>
+
+<div class="container">
+  <table id="ordersTable">
+    <thead>
+      <tr>
+        <th>Network</th>
+        <th>Plan</th>
+        <th>Price (GHS)</th>
+        <th>Recipient</th>
+        <th>Email</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Orders will populate here -->
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  <p>© 2025 Gigantic Data Hub. All rights reserved.</p>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f",
+  measurementId: "G-JGS3FXECXB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const sidebar = document.getElementById("sidebar");
+document.getElementById("menuToggle").addEventListener("click", () => sidebar.classList.toggle("active"));
+
+const tbody = document.querySelector("#ordersTable tbody");
+const currentBalanceEl = document.getElementById("currentBalance");
+
+let userUid = "";
+
+// Listen for login
+onAuthStateChanged(auth, user => {
+  if(user){
+    userUid = user.uid;
+    loadBalance();
+    listenOrders(); // listen userOrders/{uid}
+  } else {
+    window.location.href = "login.html";
+  }
+});
+
+// Load balance
+function loadBalance(){
+  const balRef = ref(db, `users/${userUid}/wallet`);
+  onValue(balRef, snap=>{
+    const bal = snap.val() || 0;
+    currentBalanceEl.textContent = `Balance: ₵${parseFloat(bal).toFixed(2)}`;
+  });
+}
+
+// Listen to all orders for this user
+function listenOrders(){
+  const ordersRef = ref(db, `userOrders/${userUid}`);
+  onValue(ordersRef, snap=>{
+    tbody.innerHTML = "";
+    const data = snap.val();
+    if(!data) return;
+
+    Object.entries(data)
+      .sort((a,b) => (b[1].timestamp || 0) - (a[1].timestamp || 0))
+      .forEach(([id, order])=>{
+        // Handle bulk orders
+        if(order.orders && order.orders.length > 0){
+          order.orders.forEach(item=>{
+            addOrderRow({...item, email: order.email || "-", status: order.status || "Pending", timestamp: order.timestamp, id});
+          });
+        } else {
+          addOrderRow({
+            network: order.network || "-",
+            plan: order.plan || "-",
+            price: parseFloat(order.price || 0).toFixed(2),
+            recipient: order.recipient || "-",
+            email: order.email || "-",
+            status: order.status || "Pending",
+            timestamp: order.timestamp,
+            id
+          });
+        }
+      });
+  });
+}
+
+function addOrderRow(order){
+  let dateStr = order.timestamp ? new Date(order.timestamp).toLocaleDateString() : '';
+  let timeStr = order.timestamp ? new Date(order.timestamp).toLocaleTimeString() : '';
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${order.network}</td>
+    <td>${order.plan}</td>
+    <td>${order.price}</td>
+    <td>${order.recipient}</td>
+    <td>${order.email}</td>
+    <td>${dateStr}</td>
+    <td>${timeStr}</td>
+    <td>${order.status}</td>
+    <td><button class="delete-btn" onclick="deleteOrder('${order.id}')">Delete</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// Delete order
+window.deleteOrder = function(id){
+  if(confirm("Delete this order permanently?")){
+    remove(ref(db, `userOrders/${userUid}/${id}`))
+      .then(()=> alert("Order deleted"))
+      .catch(err => alert("Error: " + err));
+  }
+}
+</script>
+
+</body>
+</html>

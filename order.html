@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gigantic Data Hub - Buy Data</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Reset & base */
+body, html { margin:0; padding:0; font-family:'Montserrat', sans-serif; background:#f0f2f5; color:#333; }
+h1,h2,h3 { margin:0 0 10px 0; }
+section { max-width:1000px; margin:20px auto; padding:25px; background:#fff; border-radius:16px; box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+header { background:#1e90ff; color:#fff; padding:25px; text-align:center; font-weight:600; font-size:26px; box-shadow:0 3px 12px rgba(0,0,0,0.2); border-bottom:2px solid #0077cc; border-radius:0 0 12px 12px; }
+label { display:block; margin:12px 0 6px 0; font-weight:500; }
+input, select { width:100%; padding:12px; margin-bottom:12px; border-radius:10px; border:1px solid #ccc; font-size:14px; transition:all 0.2s; }
+input:focus, select:focus { border:2px solid #1e90ff; outline:none; box-shadow:0 0 6px rgba(30,144,255,0.3); }
+button { padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:#1e90ff; color:#fff; font-weight:600; cursor:pointer; transition:all 0.3s; }
+button:hover { background:#0077cc; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+#bulkOrdersTable { width:100%; border-collapse:collapse; margin-top:15px; border-radius:8px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+#bulkOrdersTable th, #bulkOrdersTable td { padding:14px; text-align:left; border-bottom:1px solid #eee; transition:all 0.2s; }
+#bulkOrdersTable th { background:#1e90ff; color:#fff; }
+#bulkOrdersTable tr:nth-child(even){background:#f9f9f9;}
+#bulkOrdersTable tr:hover { background:#e6f0ff; }
+.remove-btn { background:#ff4d4f; padding:6px 10px; border-radius:8px; font-size:13px; transition:all 0.2s; }
+.remove-btn:hover { background:#cc0000; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+.status-box { font-weight:600; margin-bottom:15px; color:#1e90ff; }
+.order-card { padding:20px; border-radius:16px; background:#fafafa; box-shadow:0 4px 16px rgba(0,0,0,0.06); margin-bottom:20px; transition:all 0.2s; }
+.order-card:hover { box-shadow:0 6px 24px rgba(0,0,0,0.08); }
+.total-box { font-weight:700; font-size:19px; margin-top:12px; text-align:right; color:#1e90ff; }
+@media(max-width:600px){
+  section { margin:12px; padding:20px; }
+  button, input, select { font-size:14px; }
+  #bulkOrdersTable th, #bulkOrdersTable td { padding:10px; font-size:13px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  Gigantic Data Hub - Buy Data
+</header>
+
+<section>
+  <div class="status-box" id="statusBox">Loading status...</div>
+  <div>Purse Balance: ₵<span id="purseBalance">0.00</span></div>
+
+  <div class="order-card">
+    <h2>Bulk / Single Orders</h2>
+
+    <label for="bulkEmail">Your Email (optional):</label>
+    <input type="email" id="bulkEmail" placeholder="Enter your email">
+
+    <label for="bulkNetwork">Network:</label>
+    <select id="bulkNetwork">
+      <option value="mtn">MTN</option>
+      <option value="airteltigo">AirtelTigo</option>
+      <option value="telecel">Telecel</option>
+    </select>
+
+    <label for="bulkPlan">Plan:</label>
+    <select id="bulkPlan"></select>
+
+    <label for="bulkRecipient">Recipient Number:</label>
+    <input type="text" id="bulkRecipient" placeholder="Enter recipient number">
+
+    <button id="addBulkBtn">Add Recipient</button>
+  </div>
+
+  <div class="order-card">
+    <h3>Order List</h3>
+    <table id="bulkOrdersTable">
+      <thead>
+        <tr><th>Recipient</th><th>Network</th><th>Plan</th><th>Price (GHS)</th><th>Action</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="total-box">Total: GHS <span id="bulkTotal">0.00</span></div>
+    <button id="bulkContinueBtn">Proceed to Confirmation</button>
+  </div>
+</section>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f",
+  measurementId: "G-JGS3FXECXB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// DOM Elements
+const statusBox = document.getElementById('statusBox');
+const purseBalanceEl = document.getElementById('purseBalance');
+const bulkNetworkEl = document.getElementById('bulkNetwork');
+const bulkPlanSelect = document.getElementById('bulkPlan');
+const bulkRecipientEl = document.getElementById('bulkRecipient');
+const addBulkBtn = document.getElementById('addBulkBtn');
+const bulkTableBody = document.querySelector('#bulkOrdersTable tbody');
+const bulkTotalEl = document.getElementById('bulkTotal');
+const proceedBtn = document.getElementById('bulkContinueBtn');
+const bulkEmailEl = document.getElementById('bulkEmail');
+
+let isAgent = false;
+let bulkOrders = [];
+let currentUserUid = null;
+
+const agentPlans = {
+  mtn:[
+    {plan:"1GB",price:"5.3"},{plan:"2GB",price:"10.5"},{plan:"3GB",price:"15.8"},
+    {plan:"4GB",price:"21"},{plan:"5GB",price:"25.5"},{plan:"6GB",price:"30"},
+    {plan:"8GB",price:"39"},{plan:"10GB",price:"48"},{plan:"15GB",price:"68"},
+    {plan:"20GB",price:"89"},{plan:"25GB",price:"110"},{plan:"30GB",price:"131"},
+    {plan:"40GB",price:"170"},{plan:"50GB",price:"214"},{plan:"100GB",price:"413"}
+  ],
+  airteltigo:[
+    {plan:"1GB",price:"4.6"},{plan:"2GB",price:"9.3"},{plan:"3GB",price:"14"},
+    {plan:"4GB",price:"18"},{plan:"5GB",price:"23"},{plan:"6GB",price:"27"},
+    {plan:"7GB",price:"31"},{plan:"8GB",price:"36"},{plan:"10GB",price:"45"},
+    {plan:"15GB",price:"66"},{plan:"20GB",price:"77"},{plan:"30GB",price:"88"},
+    {plan:"40GB",price:"104"},{plan:"50GB",price:"119"},{plan:"60GB",price:"170"},
+    {plan:"80GB",price:"192"},{plan:"100GB",price:"212"}
+  ],
+  telecel:[
+    {plan:"10GB",price:"45"},{plan:"15GB",price:"62"},{plan:"20GB",price:"84"},
+    {plan:"25GB",price:"105"},{plan:"30GB",price:"120"},{plan:"40GB",price:"158"},
+    {plan:"50GB",price:"196"},{plan:"100GB",price:"384"}
+  ]
+};
+
+const normalPlans = {
+  mtn:[
+    {plan:"1GB",price:"5.9"},{plan:"2GB",price:"11.2"},{plan:"3GB",price:"16.9"},
+    {plan:"4GB",price:"22.2"},{plan:"5GB",price:"27.5"},{plan:"6GB",price:"32.3"},
+    {plan:"8GB",price:"41.4"},{plan:"10GB",price:"50.2"},{plan:"15GB",price:"70.7"},
+    {plan:"20GB",price:"91.8"},{plan:"25GB",price:"113"},{plan:"30GB",price:"134.9"},
+    {plan:"40GB",price:"173.4"},{plan:"50GB",price:"216.5"},{plan:"100GB",price:"419.1"}
+  ],
+  airteltigo:[
+    {plan:"1GB",price:"5.2"},{plan:"2GB",price:"9.9"},{plan:"3GB",price:"14.5"},
+    {plan:"4GB",price:"19.1"},{plan:"5GB",price:"23.8"},{plan:"6GB",price:"28.4"},
+    {plan:"7GB",price:"32.1"},{plan:"8GB",price:"37.8"},{plan:"10GB",price:"46.8"},
+    {plan:"15GB",price:"67.9"},{plan:"20GB",price:"78.8"},{plan:"30GB",price:"89.7"},
+    {plan:"40GB",price:"106"},{plan:"50GB",price:"121.5"},{plan:"60GB",price:"173"},
+    {plan:"80GB",price:"194.5"},{plan:"100GB",price:"215.5"}
+  ],
+  telecel:[
+    {plan:"10GB",price:"46.7"},{plan:"15GB",price:"63.3"},{plan:"20GB",price:"85.1"},
+    {plan:"25GB",price:"106.5"},{plan:"30GB",price:"121.5"},{plan:"40GB",price:"159.5"},
+    {plan:"50GB",price:"198.4"},{plan:"100GB",price:"386.7"}
+  ]
+};
+
+// Populate plan dropdown
+function populatePlanDropdowns(){
+  const priceSet = isAgent ? agentPlans : normalPlans;
+  const net = bulkNetworkEl.value;
+  bulkPlanSelect.innerHTML = '';
+  (priceSet[net]||[]).forEach(p=>{
+    const opt = document.createElement('option');
+    opt.value = p.plan;
+    opt.textContent = `${p.plan} — GHS ${p.price}`;
+    opt.dataset.price = p.price;
+    bulkPlanSelect.appendChild(opt);
+  });
+}
+bulkNetworkEl.onchange = populatePlanDropdowns;
+
+// Firebase Auth & Role
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    currentUserUid = user.uid;
+    const userRef = ref(db, `users/${currentUserUid}`);
+    onValue(userRef, snapshot=>{
+      const info = snapshot.val() || {};
+      const status = info.status || "Normal";
+      const purse = info.wallet || 0;
+      statusBox.textContent = `Status: ${status}`;
+      purseBalanceEl.textContent = parseFloat(purse).toFixed(2);
+      isAgent = (status.toLowerCase() === "agent");
+      populatePlanDropdowns();
+    });
+  } else {
+    statusBox.textContent = "Status: Not logged in";
+    isAgent = false;
+    populatePlanDropdowns();
+  }
+});
+
+// Render table
+function renderBulk(){
+  bulkTableBody.innerHTML='';
+  let total=0;
+  bulkOrders.forEach((o,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${o.recipient}</td><td>${o.network}</td><td>${o.plan}</td><td>${parseFloat(o.price).toFixed(2)}</td><td><button class="remove-btn" data-i="${i}">Remove</button></td>`;
+    bulkTableBody.appendChild(tr);
+    total += parseFloat(o.price);
+  });
+  bulkTotalEl.textContent = total.toFixed(2);
+  document.querySelectorAll('.remove-btn').forEach(btn=>{
+    btn.onclick = e=>{
+      const idx = parseInt(e.currentTarget.dataset.i);
+      bulkOrders.splice(idx,1);
+      renderBulk();
+    };
+  });
+}
+
+// Add recipient
+addBulkBtn.onclick = ()=>{
+  const recipient = bulkRecipientEl.value.trim();
+  const network = bulkNetworkEl.value;
+  const plan = bulkPlanSelect.value;
+  const price = bulkPlanSelect.selectedOptions[0]?.dataset.price || '0';
+  if(!recipient) return alert("Enter recipient number");
+  bulkOrders.push({recipient, network, plan, price});
+  bulkRecipientEl.value = '';
+  renderBulk();
+};
+
+// Proceed to confirmation
+proceedBtn.onclick = async () => {
+  if (!currentUserUid) return alert("You must be logged in");
+  if (bulkOrders.length === 0) return alert("Add at least one recipient");
+
+  // Construct order with real prices
+  const orderData = {
+    userId: currentUserUid,
+    email: bulkEmailEl.value.trim() || "N/A",
+    orders: bulkOrders.map(o => ({
+      recipient: o.recipient,
+      network: o.network,
+      plan: o.plan,
+      price: parseFloat(o.price) // ensure numeric value
+    })),
+    total: parseFloat(bulkOrders.reduce((sum, o) => sum + parseFloat(o.price), 0)).toFixed(2),
+    timestamp: Date.now()
+  };
+
+  try {
+    // Save to Firebase
+    const ordersRef = ref(db, 'orders');
+    const newOrderRef = push(ordersRef);
+    await set(newOrderRef, orderData);
+
+    // Save order ID & data to sessionStorage for confirmation page
+    sessionStorage.setItem('recentOrderId', newOrderRef.key);
+    sessionStorage.setItem('recentOrderData', JSON.stringify(orderData));
+
+    // Navigate to confirmation page
+    window.location.href = "confirmation.html";
+
+  } catch (error) {
+    console.error("Order submission failed:", error);
+    alert("Failed to place order. Make sure you have permission to write to the database.");
+  }
+};
+</script>
+
+</body>
+</html>

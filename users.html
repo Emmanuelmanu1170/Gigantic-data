@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Users - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
+  body { background:#f4f7ff; display:flex; flex-direction:column; min-height:100vh; }
+
+  header {
+    background:#0a2a66;
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px;
+    font-size:1.4rem;
+    font-weight:600;
+  }
+
+  .back-btn {
+    background:white;
+    color:#0a2a66;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:0.9rem;
+    font-weight:600;
+    border:none;
+  }
+
+  .status-box {
+    background:#fff;
+    color:#0a2a66;
+    max-width:1200px;
+    margin:20px auto;
+    padding:15px 20px;
+    border-radius:12px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:600;
+  }
+
+  main {
+    flex:1;
+    padding:20px;
+    max-width:1200px;
+    margin:20px auto;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    overflow-x:auto;
+  }
+
+  h2 { color:#0a2a66; margin-bottom:20px; }
+
+  table { width:100%; border-collapse:collapse; min-width:1000px; }
+
+  th, td {
+    padding:12px;
+    border-bottom:1px solid #ddd;
+    text-align:center;
+    font-size:0.9rem;
+  }
+
+  th {
+    background:#0a2a66;
+    color:white;
+  }
+
+  select {
+    padding:6px;
+    border:1px solid #ccc;
+    border-radius:6px;
+  }
+
+  button {
+    padding:6px 10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  .delete-btn {
+    background:#ff4b4b;
+    color:white;
+  }
+
+  .delete-btn:hover {
+    background:#d73838;
+  }
+
+  footer {
+    background:#0a2a66;
+    color:white;
+    text-align:center;
+    padding:15px;
+    font-size:0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  👥 Admin - User Management
+  <button class="back-btn" onclick="window.location.href='admin_dashboard.html'">← Back to Dashboard</button>
+</header>
+
+<!-- Status box for logged-in admin -->
+<div class="status-box">
+  <span>Email: <span id="adminEmail">Loading...</span></span>
+  <span>Status: <span id="adminStatus">Loading...</span></span>
+</div>
+
+<main>
+  <h2>Registered Users</h2>
+
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>UID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Wallet</th>
+        <th>Total Spent</th>
+        <th>Status</th>
+        <th>Orders</th>
+        <th>Join Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="usersBody"></tbody>
+  </table>
+</main>
+
+<footer>Gigantic Data Hub Admin Panel © 2025</footer>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const tbody = document.getElementById("usersBody");
+
+// ----------- AUTH CHECK & STATUS BOX ------------
+const ADMIN_EMAIL = "alenacloft0@gmail.com";
+
+onAuthStateChanged(auth, async user => {
+  if(!user || user.email !== ADMIN_EMAIL){
+    alert("Unauthorized. Redirecting to login.");
+    await signOut(auth);
+    window.location.href = "admin_login.html";
+    return;
+  }
+
+  document.getElementById("adminEmail").textContent = user.email;
+
+  try {
+    const statusSnap = await get(ref(db, `users/${user.uid}/status`));
+    const status = statusSnap.exists() ? statusSnap.val() : "Admin";
+    document.getElementById("adminStatus").textContent = status;
+  } catch {
+    document.getElementById("adminStatus").textContent = "Admin";
+  }
+
+  loadUsers();
+});
+
+// ----------- LOAD USERS ------------
+function loadUsers() {
+  const usersRef = ref(db, "users");
+
+  onValue(usersRef, snapshot => {
+    tbody.innerHTML = "";
+
+    if (!snapshot.exists()) {
+      tbody.innerHTML = "<tr><td colspan='10'>No users found</td></tr>";
+      return;
+    }
+
+    let index = 1;
+    snapshot.forEach(userSnap => {
+      const uid = userSnap.key;
+      const user = userSnap.val();
+
+      const wallet = user.wallet || 0;
+      const total = user.total || 0;
+      const orders = user.orderCount || 0;
+      const status = user.status || "Normal";
+      const name = user.fullname || "";
+      const email = user.email || "";
+      const joinDate = user.timestamp ? new Date(user.timestamp).toLocaleDateString() : "—";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index++}</td>
+        <td>${uid}</td>
+        <td>${name}</td>
+        <td>${email}</td>
+        <td>₵${wallet}</td>
+        <td>₵${total}</td>
+        <td>
+          <select onchange="changeStatus('${uid}', this.value)">
+            <option value="Normal" ${status === "Normal" ? "selected" : ""}>Normal</option>
+            <option value="Agent" ${status === "Agent" ? "selected" : ""}>Agent</option>
+            <option value="Admin" ${status === "Admin" ? "selected" : ""}>Admin</option>
+          </select>
+        </td>
+        <td>${orders}</td>
+        <td>${joinDate}</td>
+        <td>
+          <button class="delete-btn" onclick="deleteUser('${uid}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  });
+}
+
+// ----------- CHANGE STATUS ------------
+window.changeStatus = function(uid, newStatus) {
+  if(confirm(`Are you sure you want to change this user's status to "${newStatus}"?`)) {
+    update(ref(db, `users/${uid}`), { status: newStatus })
+      .then(() => alert("Status updated successfully"))
+      .catch(err => alert(err.message));
+  } else {
+    loadUsers(); // Reset dropdown
+  }
+};
+
+// ----------- DELETE USER ------------
+window.deleteUser = function(uid) {
+  if(confirm("Delete this user permanently?")) {
+    remove(ref(db, `users/${uid}`))
+      .then(() => console.log("User deleted"))
+      .catch(err => alert(err.message));
+  }
+};
+
+</script>
+
+</body>
+</html>

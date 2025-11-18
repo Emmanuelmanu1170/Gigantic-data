@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Links - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+  body { background:#f9fbff; color:#0a2a66; line-height:1.6; }
+  header { background:#0a2a66; color:#fff; padding:15px 8%; display:flex; justify-content:space-between; align-items:center; position:fixed; width:100%; top:0; z-index:100; }
+  header h1 { font-size:1.6rem; font-weight:700; }
+  .menu-toggle { font-size:1.8rem; cursor:pointer; color:#fff; }
+  
+  .sidebar { position:fixed; top:0; left:-260px; width:250px; height:100vh; background:#0a2a66; color:#fff; padding:30px 20px; transition:0.3s ease; z-index:200; }
+  .sidebar.active { left:0; }
+  .sidebar h2 { text-align:center; margin-bottom:25px; }
+  .sidebar ul { list-style:none; }
+  .sidebar ul li { margin:20px 0; }
+  .sidebar ul li a { color:#fff; text-decoration:none; font-weight:500; display:block; padding:6px 0; border-radius:5px; transition:0.3s; }
+  .sidebar ul li a:hover { color:#1e90ff; background:rgba(255,255,255,0.1); }
+  .container { margin-top:120px; padding:40px 8%; max-width:1000px; margin-left:auto; margin-right:auto; }
+
+  h2 { font-size:1.8rem; margin-bottom:20px; color:#0a2a66; text-align:center; }
+
+  .section { background:#fff; border-radius:15px; padding:25px 30px; margin-bottom:30px; box-shadow:0 6px 15px rgba(0,0,0,0.05); }
+  .section h3 { margin-bottom:15px; color:#0a2a66; font-size:1.4rem; }
+  .section ul { list-style:decimal; padding-left:20px; }
+  .section ul li { margin-bottom:10px; }
+  .faq p { font-weight:600; margin:5px 0; }
+  .faq span { font-weight:400; }
+
+  .collapsible { cursor:pointer; background:#0a2a66; color:#fff; padding:10px 15px; border:none; border-radius:8px; text-align:left; outline:none; font-size:1rem; margin-bottom:8px; transition:0.3s; }
+  .collapsible:hover { background:#1e90ff; }
+  .content { padding:0 15px; max-height:0; overflow:hidden; transition:max-height 0.3s ease; background:#f4f7ff; border-radius:8px; margin-bottom:15px; }
+
+  footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin-top:30px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="menu-toggle" id="menuToggle">☰</div>
+  <h1>Gigantic Data Hub</h1>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <h2>Menu</h2>
+  <ul>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="order.html">Buy Data</a></li>
+    <li><a href="order_history.html">Order History</a></li>
+    <li><a href="#">Wallet Top-up</a></li>
+    <li><a href="#">Logout</a></li>
+    <li><a href="https://wa.me/233549055308" target="_blank">Join WhatsApp Group</a></li>
+  </ul>
+</aside>
+
+<div class="container">
+  <h2>Quick Links & Information</h2>
+
+  <!-- How to Buy Data -->
+  <div class="section">
+    <h3>How to Buy Data</h3>
+    <ul>
+      <li>Click "Buy Data" on your dashboard.</li>
+      <li>Select the data service you want and fill in all details.</li>
+      <li>Confirm the order details for a successful order.</li>
+    </ul>
+  </div>
+
+  <!-- FAQs -->
+  <div class="section faq">
+    <h3>FAQs</h3>
+    <p>Q: My order is completed but not received, what should I do?</p>
+    <p>Ans: Report to Admin indicating "completed not received" within 24 hours.</p>
+
+    <p>Q: My order is still pending payment but I have been deducted?</p>
+    <p>Ans: Report to Admin indicating "pending payment".</p>
+  </div>
+
+  <!-- Terms and Conditions -->
+  <div class="section">
+    <h3>Terms & Conditions</h3>
+    <p><strong>OUR MTN DATA REQUEST DOESN’T support the following:</strong></p>
+    <ul>
+      <li>Agent SIM</li>
+      <li>Merchant SIM</li>
+      <li>EVD SIM</li>
+      <li>Turbonet SIMS</li>
+      <li>Broadband SIMS</li>
+      <li>Blacklisted SIM</li>
+      <li>Roaming SIM</li>
+      <li>Debted SIM (borrowed credit or data)</li>
+      <li>Different network</li>
+      <li>Wrong Number</li>
+    </ul>
+    <p>Any data transferred to the above SIMs gets burned and won’t be delivered or reversed.</p>
+
+    <button class="collapsible">Read Full Terms & Rules</button>
+    <div class="content">
+      <ul>
+        <li>Data delivery can take 30 mins to 2 hours </li>
+        <li>Do not buy data for MTN SIMs with borrowed credit or data.</li>
+        <li>Do not advertise our products on social media.</li>
+        <li>Do not pay for an order and request reversal from telcos.</li>
+        <li>Do not create groups to lure members to join.</li>
+        <li>Use +233 format when placing orders.</li>
+        <li>Resolve all orders with issues the same day.</li>
+        <li>Notify admin to cancel immediately if there’s an error.</li>
+        <li>Share site with friends via website link only.</li>
+        <li>Agent membership subscription fee is non-refundable.</li>
+        <li>MTN work hours: 8am – 9pm daily.</li>
+        <li>Inactive accounts for 30+ days will be wiped automatically.</li>
+        <li>Admin can suspend accounts for violating terms.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 Gigantic Data Hub. All rights reserved.</p>
+</footer>
+
+<script>
+  const menuToggle = document.getElementById("menuToggle");
+  const sidebar = document.getElementById("sidebar");
+  menuToggle.addEventListener("click", () => sidebar.classList.toggle("active"));
+
+  // Collapsible functionality
+  const collapsibles = document.querySelectorAll(".collapsible");
+  collapsibles.forEach(btn => {
+    btn.addEventListener("click", function() {
+      this.classList.toggle("active");
+      const content = this.nextElementSibling;
+      content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+body { background: linear-gradient(135deg,#0a2a66,#1e90ff); height:100vh; display:flex; align-items:center; justify-content:center; }
+.login-box { background:#fff; color:#0a2a66; padding:40px; border-radius:12px; width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.25); text-align:center; position:relative; }
+h2 { font-size:1.8rem; font-weight:700; margin-bottom:20px; }
+.input-group { text-align:left; margin-bottom:18px; }
+label { font-weight:600; margin-bottom:6px; display:block; }
+input { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; }
+input:focus { border-color:#1e90ff; }
+button { width:100%; padding:12px; background:#0a2a66; border:none; color:#fff; border-radius:8px; font-size:1rem; cursor:pointer; font-weight:600; transition:0.2s; }
+button:hover { background:#1e90ff; }
+.toast { position:absolute; bottom:-50px; left:50%; transform:translateX(-50%); background:#ff4d4f; color:#fff; padding:10px 16px; border-radius:6px; display:none; font-size:0.9rem; }
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+  <h2>Admin Login</h2>
+
+  <div class="input-group">
+    <label>Email Address</label>
+    <input type="email" id="email" placeholder="Enter email">
+  </div>
+
+  <div class="input-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter password">
+  </div>
+
+  <button id="loginBtn">Login</button>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const toastEl = document.getElementById("toast");
+function showToast(msg, duration=2500){
+  toastEl.textContent = msg;
+  toastEl.style.display = "block";
+  setTimeout(()=> toastEl.style.display="none", duration);
+}
+
+const ADMIN_EMAIL = "alenacloft0@gmail.com"; // only allowed admin email
+
+async function adminLogin(){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  if(!email || !password) return showToast("Please fill in all fields");
+
+  if(email !== ADMIN_EMAIL){
+    return showToast("You are not allowed to login as admin");
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    sessionStorage.setItem("adminLoggedIn","true"); // store only login status, not email
+    window.location.href = "admin_dashboard.html";
+  } catch(err){
+    showToast(err.message);
+  }
+}
+
+// Attach login function
+document.getElementById("loginBtn").addEventListener("click", adminLogin);
+
+// Automatic redirection removed
+</script>
+
+</body>
+</html>

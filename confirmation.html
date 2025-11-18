@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm Order - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+  body { background:#f9fbff; color:#0a2a66; overflow-x:hidden; }
+  header { background:#0a2a66; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:15px 8%; position:fixed; width:100%; top:0; z-index:100; }
+  header h1 { font-size:1.5rem; font-weight:700; letter-spacing:1px; }
+  .menu-toggle { font-size:1.8rem; cursor:pointer; color:#fff; }
+  .sidebar { position:fixed; top:0; left:-260px; width:250px; height:100vh; background:#0a2a66; color:#fff; padding:30px 20px; transition:0.3s ease; z-index:200; }
+  .sidebar.active { left:0; }
+  .sidebar h2 { text-align:center; margin-bottom:25px; }
+  .sidebar ul { list-style:none; }
+  .sidebar ul li { margin:20px 0; }
+  .sidebar ul li a { color:#fff; text-decoration:none; font-weight:500; transition:0.3s; }
+  .sidebar ul li a:hover { color:#1e90ff; }
+  .purse { background:#fff; color:#0a2a66; padding:12px; border-radius:10px; text-align:center; font-weight:600; margin-top:20px; }
+  .container { margin-top:100px; padding:60px 8%; text-align:center; }
+  h2 { font-size:1.8rem; margin-bottom:20px; }
+  .order-summary { background:#fff; padding:30px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:inline-block; min-width:300px; text-align:left; }
+  .order-summary p { font-size:1.1rem; margin:10px 0; }
+  .confirm-btn { background:#0a2a66; color:#fff; border:none; padding:12px 30px; border-radius:30px; cursor:pointer; font-weight:600; font-size:1rem; margin-top:20px; transition:0.3s; }
+  .confirm-btn:hover { background:#1e90ff; transform:scale(1.05); }
+  .balance { font-weight:700; margin-bottom:15px; font-size:1.2rem; color:#0a2a66; }
+  footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin-top:30px; border-radius:12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="menu-toggle" id="menuToggle">☰</div>
+  <h1>Gigantic Data Hub</h1>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <h2>Menu</h2>
+  <ul>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="order.html">Buy Data</a></li>
+    <li><a href="order_history.html">My Orders</a></li>
+    <li><a href="#">Wallet Top-up</a></li>
+    <li><a href="logout.html">Logout</a></li>
+    <li><a href="https://wa.me/233549055308" target="_blank">Join WhatsApp Group</a></li>
+  </ul>
+  <div class="purse" id="currentBalance">Balance: ₵0.00</div>
+</aside>
+
+<div class="container">
+  <h2>Confirm Your Order</h2>
+  <div class="order-summary" id="summary">Loading order...</div>
+</div>
+
+<footer>
+  <p>© 2025 Gigantic Data Hub. All rights reserved.</p>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, set, onValue, get, child, push } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f",
+  measurementId: "G-JGS3FXECXB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// Sidebar toggle
+document.getElementById("menuToggle").addEventListener("click",()=>{document.getElementById("sidebar").classList.toggle("active")});
+
+const summaryDiv = document.getElementById("summary");
+const balanceEl = document.getElementById("currentBalance");
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    summaryDiv.innerHTML = "<p>Please login to view your order.</p>";
+    balanceEl.textContent = `Balance: ₵0.00`;
+    return;
+  }
+
+  const uid = user.uid;
+  const walletRef = ref(db, `users/${uid}/wallet`);
+
+  // Live wallet balance
+  onValue(walletRef, snapshot => {
+    const balance = snapshot.exists() ? parseFloat(snapshot.val()) : 0;
+    balanceEl.textContent = `Balance: ₵${balance.toFixed(2)}`;
+  });
+
+  // Load recent order
+  let orderData = sessionStorage.getItem('recentOrderData');
+  if(orderData){
+    orderData = JSON.parse(orderData);
+  } else {
+    const orderId = sessionStorage.getItem('recentOrderId');
+    if(!orderId){
+      summaryDiv.innerHTML = "<p>No order found. Please create an order first.</p>";
+      return;
+    }
+    const snapshot = await get(child(ref(db), `orders/${orderId}`));
+    if(snapshot.exists()){
+      orderData = snapshot.val();
+    } else {
+      summaryDiv.innerHTML = "<p>Order not found in database.</p>";
+      return;
+    }
+  }
+
+  // Render summary
+  let totalPrice = 0;
+  let html = `<p class="balance">Current Balance: ₵0.00</p>`;
+  html += `<p><strong>Order Date/Time:</strong> ${new Date(orderData.timestamp).toLocaleString()}</p>`;
+
+  if(orderData.orders && orderData.orders.length>0){
+    html += `<p><strong>Orders:</strong></p>`;
+    orderData.orders.forEach((o,i)=>{
+      html += `<p>${i+1}. ${o.recipient} — ${o.network} — ${o.plan} — GHS ${parseFloat(o.price).toFixed(2)}</p>`;
+      totalPrice += parseFloat(o.price);
+    });
+  } else {
+    totalPrice = parseFloat(orderData.price||0);
+    html += `<p><strong>Network:</strong> ${orderData.network||'-'}</p>`;
+    html += `<p><strong>Plan:</strong> ${orderData.plan||'-'}</p>`;
+    html += `<p><strong>Recipient:</strong> ${orderData.recipient||'-'}</p>`;
+    html += `<p><strong>Price:</strong> GHS ${parseFloat(orderData.price||0).toFixed(2)}</p>`;
+  }
+
+  html += `<p><strong>Total Price:</strong> GHS ${totalPrice.toFixed(2)}</p>`;
+  html += `<button class="confirm-btn" id="confirmBtn">Confirm Purchase</button>`;
+  summaryDiv.innerHTML = html;
+
+  const confirmBtn = document.getElementById('confirmBtn');
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Processing...";
+
+    try {
+      const snapshot = await get(walletRef);
+      let balance = snapshot.exists() ? parseFloat(snapshot.val()) : 0;
+      if(balance < totalPrice){
+        alert("❌ Insufficient balance. Please top-up your wallet.");
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Confirm Purchase";
+        return;
+      }
+
+      // Deduct balance
+      balance -= totalPrice;
+      await set(walletRef, balance);
+
+      // Save orders
+      const orderId = orderData.timestamp || Date.now();
+      await set(ref(db, `userOrders/${uid}/${orderId}`), orderData);
+      await set(ref(db, `orders/${orderId}`), {...orderData, userId: uid});
+      // Admin can see it automatically if you have rules for adminOrders separately
+
+      // Clear session storage
+      sessionStorage.removeItem('recentOrderData');
+      sessionStorage.removeItem('recentOrderId');
+
+      alert(`✅ Order confirmed!\nTotal: GHS ${totalPrice.toFixed(2)}\nNew Balance: ₵${balance.toFixed(2)}`);
+      window.location.href = "order_history.html";
+
+    } catch(err){
+      console.error(err);
+      alert("❌ Something went wrong. Please try again.");
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Confirm Purchase";
+    }
+  });
+
+  // Update live balance in summary
+  const summaryBalanceEl = summaryDiv.querySelector(".balance");
+  onValue(walletRef, snapshot => {
+    const balance = snapshot.exists() ? parseFloat(snapshot.val()) : 0;
+    if(summaryBalanceEl) summaryBalanceEl.textContent = `Current Balance: ₵${balance.toFixed(2)}`;
+  });
+
+});
+</script>
+
+</body>
+</html>

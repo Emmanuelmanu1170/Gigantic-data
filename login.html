@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+
+body {
+  height:100vh; display:flex; align-items:center; justify-content:center;
+  background-color:#fff; /* plain white background for readability */
+  color:#0a2a66;
+  overflow:hidden; position:relative;
+}
+
+/* Eagle background as watermark */
+body::before {
+  content:"";
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%, -50%);
+  width:600px; height:600px;
+  background: url('https://i.ibb.co/5jYRyzV/eagle.png') no-repeat center center;
+  background-size:contain;
+  opacity:0.08; /* subtle watermark effect */
+  z-index:0;
+}
+
+.login-box {
+  position:relative;
+  background:#fff; color:#0a2a66; padding:40px 35px;
+  border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  width:360px; text-align:center; z-index:1;
+  animation: slideIn 0.8s ease-out;
+}
+
+@keyframes slideIn {
+  0% { opacity:0; transform:translateY(50px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+
+h2 { font-weight:700; margin-bottom:25px; font-size:1.9rem; color:#0a2a66; }
+
+.input-group { margin-bottom:20px; text-align:left; position:relative; }
+label { display:block; font-weight:600; font-size:0.9rem; margin-bottom:5px; }
+input {
+  width:100%; padding:12px 14px; border:1px solid #ccc;
+  border-radius:10px; font-size:1rem; outline:none; transition:0.3s;
+}
+input:focus { border-color:#1e90ff; box-shadow:0 0 8px rgba(30,144,255,0.3); }
+
+.toggle-password {
+  position:absolute; right:12px; top:40px;
+  cursor:pointer; font-size:0.85rem; color:#1e90ff; user-select:none;
+}
+
+button {
+  background:#0a2a66; color:#fff; border:none; width:100%;
+  padding:12px; border-radius:8px; font-size:1rem;
+  font-weight:600; cursor:pointer; margin-top:10px; transition:0.3s;
+}
+button:hover { background:#1e90ff; }
+
+.forgot-btn {
+  background:none; color:#0a2a66; border:none;
+  cursor:pointer; font-size:0.9rem; text-decoration:underline; margin-top:10px;
+  transition:0.3s;
+}
+.forgot-btn:hover { color:#1e90ff; }
+
+.error {
+  margin-top:10px; font-size:0.9rem; display:none; color:red; text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Login</h2>
+  <form id="loginForm">
+    <div class="input-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter email" required />
+    </div>
+    <div class="input-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter password" required />
+      <span class="toggle-password" id="togglePassword">Show</span>
+    </div>
+    <button type="submit">Login</button>
+    <button type="button" class="forgot-btn" id="forgotPasswordBtn">Forgot Password?</button>
+    <p class="error" id="errorMessage"></p>
+  </form>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { 
+  getAuth, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail 
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f",
+  measurementId: "G-JGS3FXECXB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// Toggle Password
+document.getElementById("togglePassword").addEventListener("click", () => {
+  const passwordInput = document.getElementById("password");
+  passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+  document.getElementById("togglePassword").textContent = passwordInput.type === "password" ? "Show" : "Hide";
+});
+
+const form = document.getElementById("loginForm");
+const errorMessage = document.getElementById("errorMessage");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    if (email.toLowerCase() === "admin11@gmail.com") {
+      sessionStorage.setItem("role", "admin");
+      window.location.href = "dashboard.html";
+      return;
+    }
+
+    if (!user.emailVerified) {
+      await sendEmailVerification(user);
+      errorMessage.style.display = "block";
+      errorMessage.style.color = "red";
+      errorMessage.textContent = "Email not verified! Verification sent.";
+      return;
+    }
+
+    const userRef = ref(db, "users/" + user.uid);
+    const snapshot = await get(userRef);
+
+    if (snapshot.exists()) {
+      const userData = snapshot.val();
+      sessionStorage.setItem("role", userData.role || "user");
+      window.location.href = "dashboard.html";
+    } else {
+      sessionStorage.setItem("role", "user");
+      window.location.href = "dashboard.html";
+    }
+
+  } catch (error) {
+    errorMessage.style.display = "block";
+    errorMessage.style.color = "red";
+    errorMessage.textContent = error.message;
+  }
+});
+
+// Password Reset
+document.getElementById("forgotPasswordBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  if (!email) {
+    errorMessage.style.display = "block";
+    errorMessage.style.color = "red";
+    errorMessage.textContent = "Enter your email first.";
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    errorMessage.style.display = "block";
+    errorMessage.style.color = "green";
+    errorMessage.textContent = "Reset link sent!";
+  } catch (error) {
+    errorMessage.style.display = "block";
+    errorMessage.style.color = "red";
+    errorMessage.textContent = error.message;
+  }
+});
+</script>
+
+</body>
+</html>

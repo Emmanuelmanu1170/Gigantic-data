@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+body { background:#f4f7ff; color:#0a2a66; min-height:100vh; }
+header { background:#0a2a66; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:15px 8%; position:fixed; width:100%; top:0; z-index:100; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+header h1 { font-size:1.4rem; font-weight:700; letter-spacing:1px; }
+.nav-buttons { display:flex; gap:12px; margin-top:10px; }
+.nav-buttons button { padding:8px 14px; border:none; border-radius:6px; background:#1e90ff; color:#fff; font-weight:600; cursor:pointer; transition:0.2s; }
+.nav-buttons button:hover { background:#0d6efd; }
+.container { padding:140px 40px 40px; }
+.summary-boxes { display:flex; flex-wrap:wrap; gap:20px; margin-bottom:30px; }
+.summary-box { background:#fff; padding:25px 30px; border-radius:15px; box-shadow:0 6px 15px rgba(0,0,0,0.05); flex:1; min-width:200px; text-align:left; cursor:pointer; transition:0.2s; }
+.summary-box:hover { background:#e6f0ff; }
+.summary-box h3 { margin-bottom:12px; }
+.summary-box p { font-size:1.3rem; font-weight:600; }
+.status-box { background:#fff; padding:15px 20px; border-radius:12px; box-shadow:0 6px 15px rgba(0,0,0,0.05); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; max-width:400px; }
+.chart-container { background:#fff; padding:18px; border-radius:12px; box-shadow:0 6px 15px rgba(0,0,0,0.05); margin-bottom:20px; }
+.footer { background:#0a2a66; color:#fff; text-align:center; padding:16px; margin-top:30px; box-shadow:0 -3px 6px rgba(0,0,0,0.1); }
+.toast { position:fixed; right:20px; bottom:20px; background:#0a2a66; color:#fff; padding:12px 18px; border-radius:8px; display:none; z-index:9999; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Gigantic Data Hub — Admin</h1>
+    <div class="nav-buttons">
+      <button onclick="location.href='admin_dashboard.html'">Dashboard</button>
+      <button onclick="location.href='users.html'">Users</button>
+      <button onclick="location.href='orders.html'">Orders</button>
+      <button onclick="location.href='wallet.html'">Wallet</button>
+    </div>
+  </div>
+  <div style="display:flex; gap:12px; align-items:center">
+    <button id="logoutBtn" style="background:#ff4d4f;border:none;padding:8px 12px;border-radius:6px;color:#fff;font-weight:600;cursor:pointer">Logout</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Status Box -->
+  <div class="status-box">
+    <span>Email: <span id="adminEmail">Loading...</span></span>
+    <span>Status: <span id="adminStatus">Loading...</span></span>
+  </div>
+
+  <div class="summary-boxes">
+    <div class="summary-box" id="usersBox">
+      <h3>Total Users</h3>
+      <p id="totalUsers">0</p>
+    </div>
+    <div class="summary-box" id="ordersBox">
+      <h3>Total Orders</h3>
+      <p id="totalOrders">0</p>
+    </div>
+    <div class="summary-box" id="salesBox">
+      <h3>Total Sales (₵)</h3>
+      <p id="totalSales">0.00</p>
+    </div>
+    <div class="summary-box" id="walletBox">
+      <h3>Total Wallet (₵)</h3>
+      <p id="totalWallet">0.00</p>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <h3>Monthly Sales Analytics (₵)</h3>
+    <canvas id="salesChart" height="120"></canvas>
+  </div>
+</div>
+
+<div class="footer">© 2025 Gigantic Data Hub. All rights reserved.</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const ADMIN_EMAIL = "alenacloft0@gmail.com"; // Only this email is full admin
+const toastEl = document.getElementById("toast");
+function toast(msg,time=2500){ toastEl.textContent=msg; toastEl.style.display="block"; setTimeout(()=>toastEl.style.display="none",time); }
+function formatGHS(v){ return Number(v||0).toFixed(2); }
+
+document.getElementById("logoutBtn").addEventListener("click", ()=>{
+  if(confirm("Logout?")) signOut(auth).then(()=> location.href="admin_login.html").catch(()=>toast("Logout failed"));
+});
+
+// Check auth and admin email
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    toast("Unauthorized access. Redirecting...");
+    setTimeout(()=> location.href="admin_login.html",1500);
+    return;
+  }
+
+  if(user.email !== ADMIN_EMAIL){
+    toast("You are not allowed to access this page.");
+    await signOut(auth);
+    setTimeout(()=> location.href="admin_login.html",1500);
+    return;
+  }
+
+  // Show email
+  document.getElementById("adminEmail").textContent = user.email;
+
+  // Get status from Firebase if exists
+  try {
+    const userSnap = await get(ref(db, `users/${user.uid}/status`));
+    const status = userSnap.exists()?userSnap.val():"Admin";
+    document.getElementById("adminStatus").textContent = status;
+  } catch(e){
+    document.getElementById("adminStatus").textContent = "Admin";
+  }
+
+  loadDashboard();
+});
+
+async function loadDashboard(){
+  try {
+    const usersSnap = await get(ref(db,"users"));
+    const users = usersSnap.exists()?usersSnap.val():{};
+    const totalUsers = Object.keys(users).length;
+
+    const ordersSnap = await get(ref(db,"orders"));
+    const orders = ordersSnap.exists()?Object.values(ordersSnap.val()):[];
+    const totalOrders = orders.length;
+
+    const totalSales = orders.reduce((sum,o)=>{
+      const amount = o.amountGHS || o.price || 0;
+      const status = (o.status||"").toLowerCase();
+      if(["completed","done","success"].includes(status)){
+        return sum + Number(amount);
+      }
+      return sum;
+    },0);
+
+    const totalWallet = Object.values(users).reduce((s,u)=> s + Number(u?.wallet||0),0);
+
+    document.getElementById("totalUsers").textContent = totalUsers;
+    document.getElementById("totalOrders").textContent = totalOrders;
+    document.getElementById("totalSales").textContent = formatGHS(totalSales);
+    document.getElementById("totalWallet").textContent = formatGHS(totalWallet);
+
+    // Chart monthly sales
+    const monthly = {};
+    orders.forEach(o=>{
+      const status = (o.status||"").toLowerCase();
+      if(!["completed","done","success"].includes(status)) return;
+      const d = new Date(o.createdAt || o.completedAt || Date.now());
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+      monthly[key] = (monthly[key]||0) + Number(o.amountGHS||o.price||0);
+    });
+    const sortedKeys = Object.keys(monthly).sort();
+    const labels = sortedKeys.map(k=>{const [y,m]=k.split("-");return new Date(y,Number(m)-1,1).toLocaleString('default',{month:'short',year:'numeric'})});
+    const data = sortedKeys.map(k=>monthly[k]||0);
+
+    new Chart(document.getElementById("salesChart"), {
+      type:'line',
+      data:{ labels, datasets:[{ label:'Monthly Sales (₵)', data, borderWidth:2, tension:0.3, fill:true, backgroundColor:'rgba(30,144,255,0.08)', borderColor:'#1e90ff' }] },
+      options:{ responsive:true, scales:{ y:{ beginAtZero:true } } }
+    });
+
+  } catch(e){ console.error(e); toast("Could not load dashboard"); }
+}
+
+// Make summary boxes clickable
+document.getElementById("usersBox").onclick = ()=> location.href="users.html";
+document.getElementById("ordersBox").onclick = ()=> location.href="orders.html";
+document.getElementById("walletBox").onclick = ()=> location.href="wallet.html";
+</script>
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallet - Gigantic Data Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
+body { background:#f4f7ff; color:#0a2a66; }
+header { background:#0a2a66; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:15px 8%; position:fixed; width:100%; top:0; z-index:100; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+header h1 { font-size:1.6rem; font-weight:700; letter-spacing:1px; }
+.menu-toggle { font-size:1.8rem; cursor:pointer; color:#fff; display:none; }
+.sidebar { position:fixed; top:0; left:0; width:250px; height:100vh; background:#0a2a66; color:#fff; padding:30px 20px; box-shadow:2px 0 5px rgba(0,0,0,0.1); transition:0.3s; overflow-y:auto; }
+.sidebar h2 { text-align:center; margin-bottom:25px; }
+.sidebar ul { list-style:none; }
+.sidebar ul li { margin:20px 0; }
+.sidebar ul li a { color:#fff; text-decoration:none; font-weight:500; display:block; padding:8px 10px; border-radius:5px; transition:0.3s; }
+.sidebar ul li a:hover, .sidebar ul li a.active { background:rgba(255,255,255,0.1); color:#1e90ff; }
+.container { margin-left:260px; padding:200px 40px 40px; }
+.section-buttons { display:flex; gap:15px; margin-bottom:25px; }
+.section-buttons button { padding:10px 18px; border:none; border-radius:8px; background:#1e90ff; color:#fff; font-weight:600; cursor:pointer; transition:0.3s; }
+.section-buttons button:hover { background:#0d6efd; }
+.search-box { margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap; }
+.search-box input { padding:8px 12px; border-radius:6px; border:1px solid #ccc; flex:1; }
+.status-box { background:#fff; color:#0a2a66; max-width:1200px; margin:20px auto 40px; padding:15px 20px; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 6px 15px rgba(0,0,0,0.05); margin-bottom:40px; }
+th, td { padding:14px; text-align:center; border-bottom:1px solid #f0f5ff; font-size:0.95rem; }
+th { background:#0a2a66; color:#fff; font-weight:600; }
+tr:last-child td { border-bottom:none; }
+tr:nth-child(even) { background:#f0f5ff; }
+tr:hover { background:rgba(30,144,255,0.1); transition:0.2s; }
+.btn-delete, .btn-action { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:600; transition:0.2s; }
+.btn-delete { background:#ff4d4f; color:#fff; }
+.btn-delete:hover { background:#ff7875; }
+.btn-action { background:#1e90ff; color:#fff; }
+.btn-action:hover { background:#0d6efd; }
+form { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+form input { padding:8px 10px; border-radius:6px; border:1px solid #ccc; flex:1; }
+footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin-top:30px; box-shadow:0 -3px 6px rgba(0,0,0,0.1); }
+@media(max-width:768px){
+  .container { margin-left:0; padding:200px 20px 40px; }
+  .menu-toggle { display:block; }
+  .sidebar { left:-260px; }
+  .sidebar.active { left:0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="menu-toggle" id="menuToggle">☰</div>
+  <h1>Wallet</h1>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <h2>Menu</h2>
+  <ul>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="users.html">Users</a></li>
+    <li><a href="orders.html">Orders</a></li>
+    <li><a href="wallet.html" class="active">Wallet</a></li>
+  </ul>
+</aside>
+
+<!-- Status Box -->
+<div class="status-box">
+  <span>Email: <span id="adminEmail">Loading...</span></span>
+  <span>Status: <span id="adminStatus">Loading...</span></span>
+</div>
+
+<div class="container">
+  <div class="section-buttons">
+    <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+    <button onclick="window.location.href='users.html'">Users</button>
+    <button onclick="window.location.href='orders.html'">Orders</button>
+    <button onclick="window.location.href='wallet.html'">Wallet</button>
+  </div>
+
+  <h3>Wallet Management</h3>
+
+  <div class="search-box">
+    <input type="text" id="searchUser" placeholder="Search user by email...">
+  </div>
+
+  <form id="walletForm">
+    <input type="text" id="userUid" placeholder="Type User UID">
+    <input type="number" id="creditAmount" placeholder="Credit Amount (₵)" step="0.01">
+    <input type="number" id="deductAmount" placeholder="Deduct Amount (₵)" step="0.01">
+    <button type="submit" class="btn-action">Update Wallet</button>
+  </form>
+
+  <h3>Transaction History</h3>
+  <table id="walletTable">
+    <thead>
+      <tr>
+        <th>User UID</th>
+        <th>Email</th>
+        <th>Action</th>
+        <th>Amount (₵)</th>
+        <th>New Balance (₵)</th>
+        <th>Date</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<footer>
+  <p>© 2025 Gigantic Data Hub. All rights reserved.</p>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getDatabase, ref, onValue, update, push, remove, get } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
+  authDomain: "gigantic-data.firebaseapp.com",
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",
+  projectId: "gigantic-data",
+  storageBucket: "gigantic-data.firebasestorage.app",
+  messagingSenderId: "727845403550",
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const menuToggle = document.getElementById("menuToggle");
+const sidebar = document.getElementById("sidebar");
+menuToggle.addEventListener("click", () => sidebar.classList.toggle("active"));
+
+const walletTbody = document.querySelector("#walletTable tbody");
+const searchUser = document.getElementById("searchUser");
+
+let users = [];
+let transactions = [];
+const ADMIN_EMAIL = "alenacloft0@gmail.com";
+
+// --------- AUTH CHECK -----------
+onAuthStateChanged(auth, async user => {
+  if(!user || user.email !== ADMIN_EMAIL){
+    alert("Unauthorized. Redirecting to login.");
+    await signOut(auth);
+    window.location.href = "admin_login.html";
+    return;
+  }
+
+  document.getElementById("adminEmail").textContent = user.email;
+
+  try {
+    const statusSnap = await get(ref(db, `users/${user.uid}/status`));
+    document.getElementById("adminStatus").textContent = statusSnap.exists() ? statusSnap.val() : "Admin";
+  } catch {
+    document.getElementById("adminStatus").textContent = "Admin";
+  }
+
+  loadUsers();
+});
+
+// --------- LOAD USERS & TRANSACTIONS ---------
+function loadUsers() {
+  const usersRef = ref(db, 'users');
+  onValue(usersRef, snapshot => {
+    const data = snapshot.val();
+    users = data ? Object.entries(data).map(([uid, u]) => ({ uid, ...u })) : [];
+  });
+
+  const txRef = ref(db, 'transactions');
+  onValue(txRef, snapshot => {
+    const data = snapshot.val();
+    transactions = data ? Object.entries(data).map(([id, t]) => ({ id, ...t })) : [];
+    renderTransactions(searchUser.value);
+  });
+}
+
+// --------- RENDER TRANSACTIONS ---------
+function renderTransactions(filter="") {
+  walletTbody.innerHTML = "";
+  transactions
+    .filter(t => t.email.toLowerCase().includes(filter.toLowerCase()) || t.uid.includes(filter))
+    .forEach(tx=>{
+      walletTbody.innerHTML += `
+      <tr>
+        <td>${tx.uid}</td>
+        <td>${tx.email}</td>
+        <td>${tx.type}</td>
+        <td>${parseFloat(tx.amount).toFixed(2)}</td>
+        <td>${parseFloat(tx.newBalance).toFixed(2)}</td>
+        <td>${new Date(tx.date).toLocaleString()}</td>
+        <td><button class="btn-delete" onclick="deleteTransaction('${tx.id}')">Delete</button></td>
+      </tr>`;
+    });
+}
+
+// --------- DELETE TRANSACTION ---------
+window.deleteTransaction = function(txId){
+  if(confirm("Are you sure you want to delete this transaction?")){
+    remove(ref(db, `transactions/${txId}`))
+      .then(()=> alert("Transaction deleted successfully"))
+      .catch(err => alert("Error deleting transaction: " + err.message));
+  }
+}
+
+// --------- WALLET UPDATE FORM ---------
+const walletForm = document.getElementById("walletForm");
+walletForm.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const uid = document.getElementById("userUid").value.trim();
+  const credit = parseFloat(document.getElementById("creditAmount").value) || 0;
+  const deduct = parseFloat(document.getElementById("deductAmount").value) || 0;
+
+  if(!uid){ alert("Type user UID!"); return; }
+
+  const user = users.find(u => u.uid === uid);
+  if(!user){
+    alert("User UID not found!");
+    return;
+  }
+
+  const userRef = ref(db, `users/${uid}`);
+  let newBalance = parseFloat(user.wallet || 0) + credit - deduct;
+  if(newBalance < 0) newBalance = 0;
+
+  await update(userRef, { wallet: newBalance });
+
+  // Push transactions
+  const txRefPush = ref(db, 'transactions');
+  if(credit>0){
+    push(txRefPush, {
+      uid: user.uid,
+      email: user.email,
+      type: "Credit",
+      amount: credit,
+      newBalance: newBalance,
+      date: Date.now()
+    });
+  }
+  if(deduct>0){
+    push(txRefPush, {
+      uid: user.uid,
+      email: user.email,
+      type: "Deduct",
+      amount: deduct,
+      newBalance: newBalance,
+      date: Date.now()
+    });
+  }
+
+  // Reset form
+  document.getElementById("userUid").value = "";
+  document.getElementById("creditAmount").value = "";
+  document.getElementById("deductAmount").value = "";
+
+  renderTransactions(searchUser.value);
+});
+
+// --------- SEARCH ---------
+searchUser.addEventListener("input", e=>{
+  renderTransactions(e.target.value);
+});
+</script>
+
+</body>
+</html>

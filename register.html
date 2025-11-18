@@ -1,0 +1,145 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8" />  
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+<title>Register - Gigantic Data Hub</title>  
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />  
+<style>  
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }  
+body { background: linear-gradient(135deg,#0a2a66,#1e90ff); height:100vh; display:flex; align-items:center; justify-content:center; color:#fff; }  
+.register-box { background:#fff; color:#0a2a66; padding:40px 35px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:400px; text-align:center; }  
+h2 { font-weight:700; margin-bottom:25px; font-size:1.8rem; }  
+.input-group { margin-bottom:15px; text-align:left; position:relative; }  
+label { display:block; font-weight:600; margin-bottom:5px; }  
+input { width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px; font-size:1rem; outline:none; }  
+input:focus { border-color:#1e90ff; }  
+.toggle-password { position:absolute; right:12px; top:38px; cursor:pointer; font-size:0.85rem; color:#1e90ff; user-select:none; }  
+button { background:#0a2a66; color:#fff; border:none; width:100%; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; margin-top:10px; }  
+button:hover { background:#1e90ff; }  
+.login-link { background:#fff; color:#0a2a66; border:1px solid #0a2a66; margin-top:15px; }  
+.login-link:hover { background:#0a2a66; color:#fff; }  
+.success { color:green; margin-top:10px; display:none; }  
+.error { color:red; margin-top:10px; display:none; }  
+</style>  
+</head>  
+<body>  <div class="register-box">  
+  <h2>Create Account</h2>  
+  <form id="registerForm">  
+    <div class="input-group">  
+      <label for="fullname">Full Name</label>  
+      <input type="text" id="fullname" placeholder="Enter full name" required />  
+    </div>  
+    <div class="input-group">  
+      <label for="email">Email</label>  
+      <input type="email" id="email" placeholder="Enter email" required />  
+    </div>  
+    <div class="input-group">  
+      <label for="password">Password</label>  
+      <input type="password" id="password" placeholder="Enter password" required />  
+      <span class="toggle-password" id="togglePassword">Show</span>  
+    </div>  
+    <div class="input-group">  
+      <label for="confirmPassword">Confirm Password</label>  
+      <input type="password" id="confirmPassword" placeholder="Confirm password" required />  
+    </div>  
+    <button type="submit">Register</button>  
+    <button type="button" class="login-link" onclick="window.location.href='login.html'">Already have an account? Login</button>  
+    <p class="success" id="successMessage">Registration successful! Check your email to verify. Don't forget to check your spam folder.</p>  
+    <p class="error" id="errorMessage"></p>  
+  </form>  
+</div>  <script type="module">  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";  
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";  
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";  
+  
+// Firebase config  
+const firebaseConfig = {  
+  apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",  
+  authDomain: "gigantic-data.firebaseapp.com",  
+  databaseURL: "https://gigantic-data-default-rtdb.firebaseio.com",  
+  projectId: "gigantic-data",  
+  storageBucket: "gigantic-data.firebasestorage.app",  
+  messagingSenderId: "727845403550",  
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f",  
+  measurementId: "G-JGS3FXECXB"  
+};  
+  
+// Initialize Firebase  
+const app = initializeApp(firebaseConfig);  
+const auth = getAuth(app);  
+const db = getDatabase(app);  
+  
+// Password toggle  
+const togglePassword = document.getElementById("togglePassword");  
+const passwordInput = document.getElementById("password");  
+togglePassword.addEventListener("click", () => {  
+  if(passwordInput.type === "password") {  
+    passwordInput.type = "text";  
+    togglePassword.textContent = "Hide";  
+  } else {  
+    passwordInput.type = "password";  
+    togglePassword.textContent = "Show";  
+  }  
+});  
+  
+// Form submit  
+const form = document.getElementById("registerForm");  
+const successMessage = document.getElementById("successMessage");  
+const errorMessage = document.getElementById("errorMessage");  
+  
+form.addEventListener("submit", async (e) => {  
+  e.preventDefault();  
+  
+  const fullName = document.getElementById("fullname").value.trim();  
+  const email = document.getElementById("email").value.trim();  
+  const password = document.getElementById("password").value;  
+  const confirmPassword = document.getElementById("confirmPassword").value;  
+  
+  // Validate password  
+  if(password !== confirmPassword){  
+    errorMessage.style.display = "block";  
+    errorMessage.textContent = "Passwords do not match!";  
+    successMessage.style.display = "none";  
+    return;  
+  }  
+  if(password.length < 6){  
+    errorMessage.style.display = "block";  
+    errorMessage.textContent = "Password must be at least 6 characters!";  
+    successMessage.style.display = "none";  
+    return;  
+  }  
+  
+  try {  
+    // Create user  
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);  
+    const user = userCredential.user;  
+  
+    // Send verification email  
+    await sendEmailVerification(user);  
+  
+    // Save to Realtime Database with role = user  
+    await set(ref(db, 'users/' + user.uid), {  
+      fullName,  
+      email,  
+      wallet: 0,  
+      role: "user",  
+      createdAt: Date.now()  
+    });  
+  
+    successMessage.style.display = "block";  
+    errorMessage.style.display = "none";  
+    form.reset();  
+  
+    // Redirect to login after 5 seconds  
+    setTimeout(() => {  
+      window.location.href = "login.html";  
+    }, 5000);  
+  
+  } catch(error) {  
+    errorMessage.style.display = "block";  
+    errorMessage.textContent = error.message;  
+    successMessage.style.display = "none";  
+  }  
+});  
+</script>  </body>  
+</html>  
