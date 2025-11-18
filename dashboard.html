@@ -6,119 +6,108 @@
 <title>Dashboard - Gigantic Data Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a2a66">
+
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins", sans-serif; }
-  body { background-color:#f9fbff; color:#0a2a66; overflow-x:hidden; }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+  body{background-color:#f9fbff;color:#0a2a66;overflow-x:hidden;}
 
-header {
-  background:#0a2a66;
-  color:#fff;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 8%;
-  box-shadow:0 3px 10px rgba(0,0,0,0.1);
-  position:fixed;
-  width:100%;
-  top:0;
-  z-index:100;
+header{
+  background:#0a2a66;color:#fff;display:flex;justify-content:space-between;align-items:center;
+  padding:15px 8%;box-shadow:0 3px 10px rgba(0,0,0,0.1);position:fixed;width:100%;top:0;z-index:100;
+}
+.menu-toggle{font-size:1.8rem;cursor:pointer;}
+
+.install-top-btn{
+  background:#1e90ff;color:#fff;border:none;padding:10px 16px;border-radius:8px;
+  font-weight:600;cursor:pointer;transition:0.3s;margin-left:10px;
+}
+.install-top-btn:hover{background:#0d6efd;}
+
+.user-type-box{
+  background:#fff;color:#0a2a66;border-radius:8px;padding:8px 16px;font-weight:600;font-size:0.9rem;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);max-width:360px;text-align:center;
+  display:flex;flex-direction:column;gap:4px;
 }
 
-.menu-toggle { font-size:1.8rem; cursor:pointer; }
+.date-time{font-size:0.85rem;color:#0a2a66;}
 
-.user-type-box {
-  background:#fff; color:#0a2a66; border-radius:8px;
-  padding:8px 16px; font-weight:600; font-size:0.9rem;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  max-width:360px;
-  text-align:center;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
+.sidebar{
+  position:fixed;top:0;left:-280px;width:260px;height:100vh;background:#0a2a66;color:#fff;
+  padding:30px 20px;transition:0.3s ease;z-index:200;box-shadow:2px 0 8px rgba(0,0,0,0.2);
+}
+.sidebar.active{left:0;}
+.sidebar h2{text-align:center;margin-bottom:25px;font-size:1.5rem;}
+.sidebar ul{list-style:none;}
+.sidebar ul li{margin:18px 0;}
+.sidebar ul li a,
+.sidebar ul li button{
+  color:#fff;text-decoration:none;font-weight:500;display:block;padding:10px 12px;
+  border-radius:6px;transition:0.3s;width:100%;text-align:left;background:transparent;
+  border:none;cursor:pointer;font-size:1rem;
+}
+.sidebar ul li a:hover,
+.sidebar ul li button:hover{
+  background:rgba(255,255,255,0.15);color:#1e90ff;
 }
 
-.date-time {
-  font-size:0.85rem;
-  color:#0a2a66;
+.purse{
+  background:#fff;color:#0a2a66;padding:12px;border-radius:10px;text-align:center;
+  font-weight:600;margin-top:20px;box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-.sidebar {
-  position:fixed; top:0; left:-280px; width:260px; height:100vh;
-  background:#0a2a66; color:#fff; padding:30px 20px; transition:0.3s ease; z-index:200;
-  box-shadow:2px 0 8px rgba(0,0,0,0.2);
+.hero{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:100px;
+  text-align:center;gap:30px;padding:0 8%;
 }
-.sidebar.active { left:0; }
-.sidebar h2 { text-align:center; margin-bottom:25px; font-size:1.5rem; }
-.sidebar ul { list-style:none; }
-.sidebar ul li { margin:18px 0; }
-.sidebar ul li a, .sidebar ul li button {
-  color:#fff; text-decoration:none; font-weight:500; display:block; padding:10px 12px; border-radius:6px;
-  transition:0.3s; width:100%; text-align:left; background:transparent; border:none; cursor:pointer; font-size:1rem;
-}
-.sidebar ul li a:hover, .sidebar ul li button:hover { background:rgba(255,255,255,0.15); color:#1e90ff; }
+.hero-text{flex:1 1 350px;}
+.hero-text h2{font-size:2rem;margin-bottom:15px;}
+.hero-text p{color:#333;line-height:1.6;font-size:1.05rem;}
+.hero img{width:320px;border-radius:25px;object-fit:cover;box-shadow:0 8px 20px rgba(0,0,0,0.15);}
 
-.purse {
-  background:#fff; color:#0a2a66; padding:12px; border-radius:10px; text-align:center; font-weight:600;
-  margin-top:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
+.user-status-display{
+  background:#fff;padding:15px 25px;margin:20px auto;max-width:700px;border-radius:10px;
+  text-align:center;font-size:1.2rem;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
 
-.hero {
-  display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
-  margin-top:100px; text-align:center; gap:30px; padding:0 8%;
-}
-.hero-text { flex:1 1 350px; }
-.hero-text h2 { font-size:2rem; margin-bottom:15px; }
-.hero-text p { color:#333; line-height:1.6; font-size:1.05rem; }
-.hero img { width:320px; border-radius:25px; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.15); }
-
-.user-status-display {
-  background:#fff;
-  padding:15px 25px;
-  margin:20px auto;
-  max-width:700px;
-  border-radius:10px;
-  text-align:center;
-  font-size:1.2rem;
-  font-weight:600;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
-
-.network-section { padding:60px 8%; text-align:center; }
-.network-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:25px; }
-.box {
-  color:#fff; border-radius:18px; padding:50px 20px; font-size:1.4rem; font-weight:700;
-  text-transform:uppercase; box-shadow:0 6px 18px rgba(0,0,0,0.15); position:relative;
+.network-section{padding:60px 8%;text-align:center;}
+.network-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:25px;}
+.box{
+  color:#fff;border-radius:18px;padding:50px 20px;font-size:1.4rem;font-weight:700;
+  text-transform:uppercase;box-shadow:0 6px 18px rgba(0,0,0,0.15);position:relative;
   transition:transform 0.3s, box-shadow 0.3s;
 }
-.box:hover { transform:translateY(-6px); box-shadow:0 12px 22px rgba(0,0,0,0.25); }
-.box button {
-  position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-  background:#fff; color:#0a2a66; border:none; padding:10px 20px; border-radius:25px;
-  font-weight:600; cursor:pointer; transition:0.3s;
+.box:hover{transform:translateY(-6px);box-shadow:0 12px 22px rgba(0,0,0,0.25);}
+.box button{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#fff;color:#0a2a66;border:none;padding:10px 20px;border-radius:25px;
+  font-weight:600;cursor:pointer;transition:0.3s;
 }
-.box button:hover { background:#eaf3ff; transform:translateX(-50%) scale(1.08); }
+.box button:hover{background:#eaf3ff;transform:translateX(-50%) scale(1.08);}
+.yellow{background:#ffcc00;}
+.blue{background:#007bff;}
+.red{background:#ff3333;}
+.green{background:#28c76f;}
 
-.yellow { background:#ffcc00; }
-.blue { background:#007bff; }
-.red { background:#ff3333; }
-.green { background:#28c76f; }
-
-.bottom-section {
-  display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;
-  padding:50px 8%; background:#f0f5ff; margin-top:40px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05);
+.bottom-section{
+  display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;
+  padding:50px 8%;background:#f0f5ff;margin-top:40px;border-radius:15px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.05);
 }
-.hours, .links { flex:1 1 300px; margin-bottom:20px; }
-.hours h3, .links h3 { color:#0a2a66; margin-bottom:10px; font-size:1.2rem; }
-.links a { display:block; color:#1e90ff; text-decoration:none; margin-bottom:10px; transition:0.3s; font-weight:500; }
-.links a:hover { text-decoration:underline; }
+.hours, .links{flex:1 1 300px;margin-bottom:20px;}
+.hours h3, .links h3{color:#0a2a66;margin-bottom:10px;font-size:1.2rem;}
+.links a{display:block;color:#1e90ff;text-decoration:none;margin-bottom:10px;transition:0.3s;font-weight:500;}
+.links a:hover{text-decoration:underline;}
 
-.whatsapp { text-align:center; margin-top:40px; }
-.whatsapp a {
-  background:#25d366; color:#fff; padding:14px 28px; border-radius:30px; font-weight:600; text-decoration:none; transition:0.3s;
+.whatsapp{text-align:center;margin-top:40px;}
+.whatsapp a{
+  background:#25d366;color:#fff;padding:14px 28px;border-radius:30px;font-weight:600;text-decoration:none;transition:0.3s;
 }
-.whatsapp a:hover { background:#1ebc59; }
+.whatsapp a:hover{background:#1ebc59;}
 
-footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin-top:30px; border-top:3px solid #1e90ff; }
+footer{background:#0a2a66;color:#fff;text-align:center;padding:20px;margin-top:30px;border-top:3px solid #1e90ff;}
 </style>
 </head>
 <body>
@@ -126,9 +115,10 @@ footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin
 <header>
   <div class="menu-toggle" id="menuToggle">☰</div>
   <h1>Gigantic Data Hub</h1>
+  <button id="installBtn" class="install-top-btn">Install App</button>
   <div class="user-type-box" id="userTypeBox">
     User: Normal
-    <div id="currentDateTime" class="date-time">Loading date & time...</div>
+    <div id="currentDateTime" class="date-time">Loading...</div>
   </div>
 </header>
 
@@ -148,8 +138,7 @@ footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin
 <section class="hero">
   <div class="hero-text">
     <h2>Buy Your Cheap Data Bundles Here</h2>
-    <p>Instant data delivery for MTN, AirtelTigo, and Telecel.<br>
-    Fast, secure, and reliable bulk purchase options available.</p>
+    <p>Instant data delivery for MTN, AirtelTigo, and Telecel.<br>Fast, secure, and reliable bulk purchase options available.</p>
   </div>
   <img src="https://img.freepik.com/free-photo/african-woman-smiling-holding-phone_23-2148881828.jpg" alt="Smiling lady with phone" />
 </section>
@@ -198,37 +187,21 @@ footer { background:#0a2a66; color:#fff; text-align:center; padding:20px; margin
   <p>© 2025 Gigantic Data Hub. All rights reserved.</p>
 </footer>
 
-<!-- Firebase & JS -->
+<!-- Bottom Floating Install Button -->
+<button id="pwaInstallBtn"
+style="position:fixed; bottom:20px; right:20px; padding:15px 22px;
+background:#0a2a66; color:#fff; font-weight:700; border:none; border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.2); display:none; z-index:999;">
+Install App
+</button>
+
+<!-- Firebase & Dashboard JS -->
 <script type="module">
-/* =========================
-   Gigantic Data Hub - Firebase Dashboard JS
-   - Replace the older inline script with this.
-   - This script is defensive, transactional (wallet updates),
-     and includes order + agent flows.
-   - NOTE: For any payment provider (Paystack, Flutterwave etc.)
-     you must validate transactions server-side and only then
-     update user wallet / order status in the DB.
-   ========================= */
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import {
-  getDatabase,
-  ref,
-  onValue,
-  update,
-  runTransaction,
-  push,
-  set,
-  get,
-  child,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
 
-/* -------------------------
-   Firebase config + init
-   ------------------------- */
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBmiippVd5uyAb51U9upNNpSvJk0lXSNg4",
   authDomain: "gigantic-data.firebaseapp.com",
@@ -236,403 +209,95 @@ const firebaseConfig = {
   projectId: "gigantic-data",
   storageBucket: "gigantic-data.firebasestorage.app",
   messagingSenderId: "727845403550",
-  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f",
-  measurementId: "G-JGS3FXECXB"
+  appId: "1:727845403550:web:e3c3a40ce615aaaca9748f"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-try { getAnalytics(app); } catch (e) { /* analytics may fail on some hosts; ignore */ }
 
-/* expose for other scripts if needed */
-window.auth = auth;
-window.db = db;
+// ==============================
+// PWA INSTALL BUTTON LOGIC
+// ==============================
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+const pwaInstallBtn = document.getElementById("pwaInstallBtn");
+installBtn.style.display = "none";
+pwaInstallBtn.style.display = "none";
 
-/* -------------------------
-   Element references (defensive)
-   ------------------------- */
-const sidebar = document.getElementById("sidebar");
-const menuToggle = document.getElementById("menuToggle");
-const userTypeBox = document.getElementById("userTypeBox");
-const userStatusDisplay = document.getElementById("userStatusDisplay");
-const becomeAgentBtn = document.getElementById("becomeAgentBtn");
-const purseBox = document.querySelector(".purse");
-const whatsappBtn = document.querySelector(".whatsapp a");
-
-/* fix: use class for date/time to avoid duplicate IDs */
-function setDateTimeText(text) {
-  // use one element inside header (do not rely on identical IDs)
-  const el = document.querySelector(".currentDateTime");
-  if (el) el.textContent = text;
-}
-
-/* sidebar toggle */
-if (menuToggle && sidebar) {
-  menuToggle.addEventListener("click", () => sidebar.classList.toggle("active"));
-}
-
-/* -------------------------
-   Utility helpers
-   ------------------------- */
-function formatCurrencyGHS(amount) {
-  try {
-    return Number(amount).toFixed(2);
-  } catch (e) {
-    return "0.00";
-  }
-}
-
-function safeText(node, fallback = "") {
-  if (!node) return fallback;
-  return node.textContent || fallback;
-}
-
-/* -------------------------
-   Auth + Page Protection
-   ------------------------- */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    // User not logged in: show friendly message and redirect to login
-    if (userTypeBox) userTypeBox.textContent = "User: Not logged in";
-    if (userStatusDisplay) userStatusDisplay.textContent = "Welcome! Please log in to access your dashboard.";
-    // Redirect to login page (uncomment if you want forced redirect)
-    // location.href = "login.html";
-    return;
-  }
-
-  // user is logged in: load their data
-  await loadUser(user);
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = "block";
+  pwaInstallBtn.style.display = "block";
 });
 
-/* -------------------------
-   Load user data & realtime listener
-   ------------------------- */
-let currentUID = null;
-let userRefUnsub = null;
-
-async function loadUser(user) {
-  try {
-    const uid = user.uid;
-    currentUID = uid;
-    const userRefPath = `users/${uid}`;
-    const userRef = ref(db, userRefPath);
-
-    // Pull profile once and then listen for updates
-    onValue(userRef, (snap) => {
-      const info = snap.val();
-
-      // Safe defaults
-      const status = info?.status || "Normal";
-      const purse = typeof info?.wallet === "number" ? info.wallet : Number(info?.wallet || 0);
-      const email = user.email || "Unknown";
-
-      // Prevent duplicate currentDateTime ids by using a small HTML structure
-      if (userTypeBox) {
-        userTypeBox.innerHTML = `
-          User: ${status} (${email})
-          <div class="currentDateTime date-time"></div>
-        `;
-      }
-
-      setDateTimeText(new Date().toLocaleString()); // update once immediately
-
-      if (userStatusDisplay) {
-        userStatusDisplay.innerHTML = `
-          You are currently logged in as <strong>${status}</strong> user.<br>
-          ${status === "Agent"
-            ? "All agent discounts and bundle prices are unlocked 🎉"
-            : "Upgrade to become an Agent for cheaper data prices."
-          }
-        `;
-      }
-
-      if (purseBox) purseBox.textContent = `Purse Balance: ₵${formatCurrencyGHS(purse)}`;
-    });
-  } catch (err) {
-    console.error("Error loading user:", err);
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const choice = await deferredPrompt.userChoice;
+  if (choice.outcome === "accepted") {
+    installBtn.style.display = "none";
+    pwaInstallBtn.style.display = "none";
   }
+  deferredPrompt = null;
 }
 
-/* -------------------------
-   Logout function
-   ------------------------- */
-export async function logout() {
-  try {
-    await signOut(auth);
-    // Optional: redirect to login after signout
-    location.href = "login.html";
-  } catch (err) {
-    console.error("Logout failed:", err);
-    alert("Logout failed. Please try again.");
-  }
-}
+installBtn.addEventListener("click", installPWA);
+pwaInstallBtn.addEventListener("click", installPWA);
 
-/* attach logout behavior to elements with data-logout attribute (if present) */
-document.querySelectorAll("[data-logout]").forEach(el => {
-  el.addEventListener("click", (e) => {
-    e.preventDefault();
-    logout();
-  });
+window.addEventListener("appinstalled", () => {
+  installBtn.style.display = "none";
+  pwaInstallBtn.style.display = "none";
 });
 
-/* -------------------------
-   Wallet operations (transactional)
-   ------------------------- */
-
-/**
- * Safely update wallet (increment or decrement) using runTransaction
- * - uid: user id
- * - delta: positive to add, negative to subtract
- * - note: returns {success: boolean, newBalance: number | null, error}
- */
-export async function changeWallet(uid, delta, meta = {}) {
-  if (!uid) return { success: false, error: "No uid provided" };
-  const walletRef = ref(db, `users/${uid}/wallet`);
-  try {
-    const result = await runTransaction(walletRef, (current) => {
-      // Ensure numeric
-      let val = typeof current === "number" ? current : Number(current || 0);
-      const newVal = val + Number(delta);
-      if (newVal < 0) {
-        // prevent negative balance
-        throw new Error("Insufficient funds");
-      }
-      return newVal;
-    });
-    if (result.committed) {
-      return { success: true, newBalance: result.snapshot.val() };
-    } else {
-      return { success: false, error: "Transaction not committed" };
-    }
-  } catch (err) {
-    console.error("changeWallet error:", err);
-    return { success: false, error: err.message || String(err) };
-  }
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
 }
 
-/* -------------------------
-   Orders: create & save
-   ------------------------- */
+// ==============================
+// SIDEBAR TOGGLE
+// ==============================
+document.getElementById("menuToggle").onclick = () => {
+  document.getElementById("sidebar").classList.toggle("active");
+};
 
-/**
- * createOrder saves an order object to /orders and to user's order list
- * - returns orderId and order object
- */
-export async function createOrder({ uid, network = "MTN", amountGHS = 0, phone = "", bundle = "", agent = false }) {
-  if (!uid) throw new Error("User not logged in");
-  const ordersRef = ref(db, "orders");
-  const userOrdersRef = ref(db, `users/${uid}/orders`);
-  const newOrderRef = push(ordersRef);
-  const orderId = newOrderRef.key;
-  const orderObj = {
-    id: orderId,
-    uid,
-    network,
-    amountGHS: Number(amountGHS) || 0,
-    phone,
-    bundle,
-    agent,
-    status: "pending", // pending -> processing -> completed/failed
-    createdAt: Date.now()
-  };
-
-  // Save to global orders and to user's orders (atomic-ish but not multi-path here)
-  try {
-    await set(newOrderRef, orderObj);
-    // add pointer under user's orders
-    await push(userOrdersRef, { orderId, createdAt: Date.now() });
-    return { orderId, order: orderObj };
-  } catch (err) {
-    console.error("createOrder error:", err);
-    throw err;
-  }
-}
-
-/**
- * completeOrder: mark order status and optionally store vendor response
- */
-export async function completeOrder(orderId, updates = {}) {
-  if (!orderId) throw new Error("orderId required");
-  const orderRef = ref(db, `orders/${orderId}`);
-  try {
-    await update(orderRef, { ...updates, updatedAt: Date.now() });
-    return { success: true };
-  } catch (err) {
-    console.error("completeOrder error:", err);
-    return { success: false, error: err.message || String(err) };
-  }
-}
-
-/* -------------------------
-   Agent upgrade flow
-   ------------------------- */
-
-/**
- * requestAgentUpgrade creates a pending agent request and returns a payment token URL
- * - For real payments: you should create a server endpoint that initiates Paystack/Flutterwave
- *   transaction and returns a checkout url or inline token.
- * - This function only creates the DB record and returns the id for the server to use.
- */
-export async function requestAgentUpgrade(uid, feeGHS = 40) {
-  if (!uid) throw new Error("User not logged in");
-  const agentRequestsRef = ref(db, "agentRequests");
-  const newReqRef = push(agentRequestsRef);
-  const reqId = newReqRef.key;
-  const reqObj = {
-    id: reqId,
-    uid,
-    feeGHS: Number(feeGHS),
-    status: "pending", // pending, paid, verified, rejected
-    createdAt: Date.now()
-  };
-  await set(newReqRef, reqObj);
-
-  // return request id so your server can attach it to payment metadata
-  return { reqId, reqObj };
-}
-
-/**
- * finalizeAgentUpgrade - called after server-side verification of payment
- * - server should verify payment with Paystack and then call this function (or write to DB)
- * - here we provide a client-callable helper that simulates verification step
- */
-export async function finalizeAgentUpgrade(reqId, paymentDetails = {}) {
-  // server should call this logic; client should not mark verified without server confirmation
-  if (!reqId) throw new Error("reqId required");
-  const reqRef = ref(db, `agentRequests/${reqId}`);
-  await update(reqRef, { status: "paid", paymentDetails, paidAt: Date.now() });
-
-  // read the request to find uid
-  const snap = await get(reqRef);
-  const req = snap.val();
-  if (!req) throw new Error("Request not found");
-
-  // upgrade user status
-  if (req.uid) {
-    const userRef = ref(db, `users/${req.uid}`);
-    await update(userRef, { status: "Agent" });
-    return { success: true };
-  } else {
-    return { success: false, error: "No uid on request" };
-  }
-}
-
-/* -------------------------
-   Example: handle Buy Data button click
-   - This function demonstrates the typical flow:
-     1. createOrder(...)  -> status pending
-     2. deduct wallet using changeWallet(...) OR redirect to payment
-     3. call vendor API (server side is recommended)
-     4. update order status
-   ------------------------- */
-export async function buyData({ uid, network, amountGHS, phone, bundle }) {
-  // 1. create order (pending)
-  const { orderId, order } = await createOrder({ uid, network, amountGHS, phone, bundle });
-
-  // 2. Attempt to deduct wallet atomically
-  const delta = -Math.abs(Number(amountGHS || 0));
-  const walletResult = await changeWallet(uid, delta);
-  if (!walletResult.success) {
-    // Insufficient funds or failure: mark order failed and return
-    await update(ref(db, `orders/${orderId}`), { status: "failed", failureReason: walletResult.error, updatedAt: Date.now() });
-    throw new Error("Payment failed: " + walletResult.error);
-  }
-
-  // 3. Submit to vendor (THIS MUST BE SERVER-SIDE; we add a pending vendor field)
-  await update(ref(db, `orders/${orderId}`), { status: "processing", processingAt: Date.now() });
-
-  // TODO: call your server endpoint to send the vendor request. Example:
-  // const vendorResponse = await fetch("/api/send-order-to-vendor", { method: "POST", body: JSON.stringify({ orderId, order })});
-  // After server returns vendor success/fail, update order accordingly.
-
-  // For now: mark as completed (placeholder)
-  await update(ref(db, `orders/${orderId}`), { status: "completed", vendorResponse: "SIMULATED - implement server call", completedAt: Date.now() });
-
-  return { orderId, newBalance: walletResult.newBalance };
-}
-
-/* -------------------------
-   Simple Paystack / External payment workflow note
-   ------------------------- */
-/*
-  - Client should create a DB record for a top-up or agent request (status: pending).
-  - Client then hits your server to initialize the payment (server creates Paystack transaction,
-    attaches the DB record id as metadata and returns payment link/checkout token).
-  - User completes payment on Paystack.
-  - Paystack sends webhook to your server; server verifies transaction with Paystack using secret key.
-  - On successful verification, server writes to the db (e.g., topups/{id}.status = "paid", topups/{id}.paidAt, topups/{id}.paystackRef)
-  - Server then updates user's wallet using a server SDK or server uses trusted credentials to update DB.
-  - Never trust a client-side callback alone to mark payments as successful.
-*/
-
-/* -------------------------
-   Date/time updater (safe)
-   ------------------------- */
+// ==============================
+// TIME UPDATE
+// ==============================
 function updateDateTime() {
   const now = new Date();
-  const dt = now.toLocaleString();
-  setDateTimeText(dt);
+  const el = document.getElementById("currentDateTime");
+  if (el) el.textContent = now.toLocaleString();
 }
 updateDateTime();
 setInterval(updateDateTime, 1000);
 
-/* -------------------------
-   Become Agent button behaviour (client-side)
-   ------------------------- */
-if (becomeAgentBtn) {
-  becomeAgentBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Please log in to request agent upgrade.");
-      return;
-    }
+// ==============================
+// USER STATUS & WALLET
+// ==============================
+const userBox = document.getElementById("userTypeBox");
+const walletBox = document.querySelector(".purse");
+const userStatusDisplay = document.getElementById("userStatusDisplay");
 
-    // create pending agent request
-    try {
-      const { reqId } = await requestAgentUpgrade(user.uid, 40);
-      // TODO: open payment flow (server-generated checkout link)
-      // Example: location.href = `/pay/agent?reqId=${reqId}`;
-      // For now open WhatsApp with a message referencing the reqId:
-      const msg = `Hello Admin, I'd like to become an agent. RequestId: ${reqId}`;
-      window.open(`https://wa.me/233549055308?text=${encodeURIComponent(msg)}`, "_blank");
-    } catch (err) {
-      console.error("Agent request failed:", err);
-      alert("Could not create agent request. Try again later.");
-    }
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    userBox.innerHTML = "User: Not logged in";
+    userStatusDisplay.textContent = "Please log in.";
+    return;
+  }
+
+  const userRef = ref(db, "users/" + user.uid);
+  onValue(userRef, (snap) => {
+    const u = snap.val() || {};
+    const status = u.status || "Normal";
+    const balance = Number(u.wallet || 0).toFixed(2);
+
+    userBox.innerHTML = `User: ${status}<br>${user.email}<div id="currentDateTime" class="date-time"></div>`;
+    walletBox.textContent = `Purse Balance: ₵${balance}`;
+    userStatusDisplay.innerHTML = `You are a <strong>${status}</strong> user.`;
   });
-}
-
-/* -------------------------
-   Defensive DOM checks (purse element may not exist)
-   ------------------------- */
-if (!purseBox) {
-  console.warn("Purse element not found (.purse). Wallet display will not be visible.");
-}
-
-/* -------------------------
-   Expose functions to window for inline onclick usage (optional)
-   - e.g., in HTML: <button onclick="window.buyFromWidget()">Buy</button>
-   ------------------------- */
-window.gdh = {
-  buyData,
-  createOrder,
-  changeWallet,
-  requestAgentUpgrade,
-  finalizeAgentUpgrade,
-  logout
-};
-
-/* -------------------------
-   IMPORTANT:
-   1) Add Firebase Realtime Database security rules before production to:
-      - Allow users to write only their own wallet/orders
-      - Allow only server to mark payments verified (use custom claims or server key)
-   2) Do NOT rely on client-only payment verification.
-   3) Move sensitive server operations (vendor calls, payment verification) to a trusted server.
-   ------------------------- */
-
+});
 </script>
 
 </body>
